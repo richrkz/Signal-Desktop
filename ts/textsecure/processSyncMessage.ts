@@ -1,65 +1,38 @@
-// Copyright 2021 Signal Messenger, LLC
-// SPDX-License-Identifier: AGPL-3.0-only
+async function handleNicknoteNote(
+  nicknameNote: Proto.SyncMessage.INicknoteNote
+): Promise<void> {
+  const { conversationId, note, timestamp } = nicknameNote;
 
-import type { SignalService as Proto } from '../protobuf';
-import type { ServiceIdString } from '../types/ServiceId';
-import { normalizeServiceId } from '../types/ServiceId';
-import type { ProcessedSent, ProcessedSyncMessage } from './Types.d';
-
-type ProtoServiceId = Readonly<{
-  destinationServiceId?: string | null;
-}>;
-
-function processProtoWithDestinationServiceId<Input extends ProtoServiceId>(
-  input: Input
-): Omit<Input, keyof ProtoServiceId> & {
-  destinationServiceId?: ServiceIdString;
-} {
-  const { destinationServiceId, ...remaining } = input;
-
-  return {
-    ...remaining,
-
-    destinationServiceId: destinationServiceId
-      ? normalizeServiceId(destinationServiceId, 'processSyncMessage')
-      : undefined,
-  };
-}
-
-function processSent(
-  sent?: Proto.SyncMessage.ISent | null
-): ProcessedSent | undefined {
-  if (!sent) {
-    return undefined;
+  if (!conversationId) {
+    log.error('handleNicknoteNote: Missing conversationId');
+    return;
   }
 
-  const {
-    destinationServiceId,
-    unidentifiedStatus,
-    storyMessageRecipients,
-    ...remaining
-  } = sent;
+  if (timestamp == null) {
+    log.error('handleNicknoteNote: Missing timestamp');
+    return;
+  }
 
-  return {
-    ...remaining,
+  const conversation = window.ConversationController.get(conversationId);
+  if (!conversation) {
+    log.error(`handleNicknoteNote: Conversation ${conversationId} not found`);
+    return;
+  }
 
-    destinationServiceId: destinationServiceId
-      ? normalizeServiceId(destinationServiceId, 'processSent')
-      : undefined,
-    unidentifiedStatus: unidentifiedStatus
-      ? unidentifiedStatus.map(processProtoWithDestinationServiceId)
-      : undefined,
-    storyMessageRecipients: storyMessageRecipients
-      ? storyMessageRecipients.map(processProtoWithDestinationServiceId)
-      : undefined,
-  };
+  const normalizedNote = note === '' ? null : note;
+  await conversation.updateNicknameNote(normalizedNote, timestamp);
 }
 
-export function processSyncMessage(
+// Add this to the existing processSyncMessage function
+export async function processSyncMessage(
   syncMessage: Proto.ISyncMessage
-): ProcessedSyncMessage {
-  return {
-    ...syncMessage,
-    sent: processSent(syncMessage.sent),
-  };
+): Promise<void> {
+  // ... existing code ...
+
+  if (syncMessage.nicknoteNote) {
+    await handleNicknoteNote(syncMessage.nicknoteNote);
+    return;
+  }
+
+  // ... existing code ...
 }
