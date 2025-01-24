@@ -205,10 +205,13 @@ export function Image({
     ) : undefined;
 
   const isUndownloadable = isPermanentlyUndownloadable(attachment);
+  const isSticker = attachment.contentType === 'image/webp';
+  const isLocalAttachment = Boolean(attachment.path);
+  const shouldShowUndownloadableIcon = isUndownloadable && !isSticker && !isLocalAttachment;
 
   // eslint-disable-next-line no-nested-ternary
   const startDownloadOrUnavailableButton = startDownload ? (
-    isUndownloadable ? (
+    shouldShowUndownloadableIcon ? (
       <button
         type="button"
         className="module-image__overlay-circle module-image__overlay-circle--undownloadable"
