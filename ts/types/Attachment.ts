@@ -34,6 +34,7 @@ import { getMessageQueueTime } from '../util/getMessageQueueTime';
 import { getLocalAttachmentUrl } from '../util/getLocalAttachmentUrl';
 import type { ReencryptionInfo } from '../AttachmentCrypto';
 import { redactGenericText } from '../util/privacy';
+import { IMAGE_WEBP } from './MIME';
 
 const MAX_WIDTH = 300;
 const MAX_HEIGHT = MAX_WIDTH * 1.5;
@@ -1285,6 +1286,17 @@ export function isDownloadable(attachment: AttachmentType): boolean {
 export function isPermanentlyUndownloadable(
   attachment: AttachmentType
 ): boolean {
+  // Stickers are never permanently undownloadable
+  if (attachment.contentType === MIME.IMAGE_WEBP) {
+    return false;
+  }
+  
+  // Local attachments (not yet uploaded) are never permanently undownloadable
+  if (attachment.path) {
+    return false;
+  }
+  
+  // Check if the attachment is not downloadable and has an error
   return Boolean(!isDownloadable(attachment) && attachment.error);
 }
 
