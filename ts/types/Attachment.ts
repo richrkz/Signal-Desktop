@@ -1282,10 +1282,24 @@ export function isDownloadable(attachment: AttachmentType): boolean {
   );
 }
 
+const ATTACHMENT_EXPIRY_DAYS = 45;
+
+export function isOlderThan45Days(attachment: AttachmentType): boolean {
+  if (!attachment.uploadTimestamp) {
+    return false;
+  }
+  const now = Date.now();
+  const ageInDays = (now - attachment.uploadTimestamp) / (24 * 60 * 60 * 1000);
+  return ageInDays > ATTACHMENT_EXPIRY_DAYS;
+}
+
 export function isPermanentlyUndownloadable(
   attachment: AttachmentType
 ): boolean {
-  return Boolean(!isDownloadable(attachment) && attachment.error);
+  return Boolean(
+    (!isDownloadable(attachment) && attachment.error) ||
+    (isOlderThan45Days(attachment) && !isAttachmentLocallySaved(attachment))
+  );
 }
 
 export function isAttachmentLocallySaved(

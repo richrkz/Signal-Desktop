@@ -18,6 +18,8 @@ import {
   isPermanentlyUndownloadable,
   isReadyToView,
 } from '../../types/Attachment';
+
+// Note: isPermanentlyUndownloadable now includes a check for attachments older than 45 days
 import { ProgressCircle } from '../ProgressCircle';
 import { useUndownloadableMediaHandler } from '../../hooks/useUndownloadableMediaHandler';
 
