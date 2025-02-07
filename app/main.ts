@@ -681,19 +681,25 @@ async function createWindow() {
   const usePreloadBundle =
     !isTestEnvironment(getEnvironment()) || forcePreloadBundle;
 
+  // Load custom configuration
+  const fs = require('fs');
+  const path = require('path');
+  const customConfigPath = path.join(app.getPath('userData'), 'ephemeral.json');
+  let customConfig;
+  try {
+    customConfig = JSON.parse(fs.readFileSync(customConfigPath, 'utf8'));
+  } catch (error) {
+    getLogger().error('Failed to load custom config:', error);
+    customConfig = {};
+  }
+
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width: maxWidth, height: maxHeight } = primaryDisplay.workAreaSize;
-  const width = windowConfig
-    ? Math.min(windowConfig.width, maxWidth)
-    : DEFAULT_WIDTH;
-  const height = windowConfig
-    ? Math.min(windowConfig.height, maxHeight)
-    : DEFAULT_HEIGHT;
 
   const windowOptions: Electron.BrowserWindowConstructorOptions = {
     show: false,
-    width,
-    height,
+    width: Math.max(Math.min(customConfig.window?.width || DEFAULT_WIDTH, maxWidth), MIN_WIDTH),
+    height: Math.max(Math.min(customConfig.window?.height || DEFAULT_HEIGHT, maxHeight), MIN_HEIGHT),
     minWidth: MIN_WIDTH,
     minHeight: MIN_HEIGHT,
     autoHideMenuBar: false,
@@ -718,18 +724,9 @@ async function createWindow() {
       disableBlinkFeatures: 'Accelerated2dCanvas,AcceleratedSmallCanvases',
     },
     icon: windowIcon,
-    ...pick(windowConfig, ['autoHideMenuBar', 'x', 'y']),
+    x: customConfig.window?.x,
+    y: customConfig.window?.y,
   };
-
-  if (!isNumber(windowOptions.width) || windowOptions.width < MIN_WIDTH) {
-    windowOptions.width = DEFAULT_WIDTH;
-  }
-  if (!isNumber(windowOptions.height) || windowOptions.height < MIN_HEIGHT) {
-    windowOptions.height = DEFAULT_HEIGHT;
-  }
-  if (!isBoolean(windowOptions.autoHideMenuBar)) {
-    delete windowOptions.autoHideMenuBar;
-  }
 
   const startInTray =
     isTestEnvironment(getEnvironment()) ||
@@ -783,10 +780,8 @@ async function createWindow() {
     getResolvedMessagesLocale().i18n,
     getLogger()
   );
-  if (!startInTray && windowConfig && windowConfig.maximized) {
-    mainWindow.maximize();
-  }
-  if (!startInTray && windowConfig && windowConfig.fullscreen) {
+  // Remove automatic maximization
+  if (!startInTray && customConfig.window?.fullscreen) {
     mainWindow.setFullScreen(true);
   }
   if (systemTrayService) {
@@ -842,8 +837,10 @@ async function createWindow() {
     }
   }
 
-  mainWindow.on('resize', captureWindowStats);
-  mainWindow.on('move', captureWindowStats);
+mainWindow.on('resize', captureWindowStats);
+mainWindow.on('move', captureWindowStats);
+mainWindow.on('maximize', captureWindowStats);
+mainWindow.on('unmaximize', captureWindowStats);
 
   if (!ciMode && config.get<boolean>('openDevTools')) {
     // Open the DevTools.
