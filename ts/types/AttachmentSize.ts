@@ -7,7 +7,8 @@ import type * as RemoteConfig from '../RemoteConfig';
 
 export const KIBIBYTE = 1024;
 const MEBIBYTE = 1024 * 1024;
-const DEFAULT_MAX = 100 * MEBIBYTE;
+const GIBIBYTE = 1024 * MEBIBYTE;
+const DEFAULT_MAX = 2 * GIBIBYTE;
 
 export const getMaximumOutgoingAttachmentSizeInKb = (
   getValue: typeof RemoteConfig.getValue

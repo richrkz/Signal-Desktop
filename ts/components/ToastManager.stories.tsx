@@ -115,7 +115,7 @@ function getToast(toastType: ToastType): AnyToast {
     case ToastType.FileSize:
       return {
         toastType: ToastType.FileSize,
-        parameters: { limit: 100, units: 'MB' },
+        parameters: { limit: 2, units: 'GB' },
       };
     case ToastType.GroupLinkCopied:
       return { toastType: ToastType.GroupLinkCopied };
