@@ -469,6 +469,13 @@ export class ConversationController {
   areWePrimaryDevice(): boolean {
     const ourDeviceId = window.textsecure.storage.user.getDeviceId();
 
+    if (ourDeviceId === undefined) {
+      log.warn(
+        'ConversationController.areWePrimaryDevice: Device ID is undefined'
+      );
+      return false;
+    }
+
     return ourDeviceId === 1;
   }
 

@@ -3034,9 +3034,15 @@ export default class MessageReceiver
     }
 
     const ourDeviceId = this.#storage.user.getDeviceId();
-    // eslint-disable-next-line eqeqeq
-    if (envelope.sourceDevice == ourDeviceId) {
-      throw new Error('Received sync message from our own device');
+    if (ourDeviceId === undefined) {
+      log.warn(
+        'MessageReceiver.handleSyncMessage: Device ID is undefined, cannot verify sync message source'
+      );
+    } else {
+      // eslint-disable-next-line eqeqeq
+      if (envelope.sourceDevice == ourDeviceId) {
+        throw new Error('Received sync message from our own device');
+      }
     }
     if (syncMessage.sent) {
       const sentMessage = syncMessage.sent;

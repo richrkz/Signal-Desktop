@@ -481,7 +481,14 @@ export function createIPCEvents(
       return window.IPC.setAutoLaunch(value);
     },
 
-    isPrimary: () => window.textsecure.storage.user.getDeviceId() === 1,
+    isPrimary: () => {
+      const deviceId = window.textsecure.storage.user.getDeviceId();
+      if (deviceId === undefined) {
+        log.warn('createIPCEvents.isPrimary: Device ID is undefined');
+        return false;
+      }
+      return deviceId === 1;
+    },
     syncRequest: () =>
       new Promise<void>((resolve, reject) => {
         const FIVE_MINUTES = 5 * durations.MINUTE;

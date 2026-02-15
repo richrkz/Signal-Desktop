@@ -189,7 +189,7 @@ export async function sendStoryMessage(
           sent_at: timestamp,
           source: window.textsecure.storage.user.getNumber(),
           sourceServiceId: window.textsecure.storage.user.getAci(),
-          sourceDevice: window.textsecure.storage.user.getDeviceId(),
+          sourceDevice: window.textsecure.storage.user.getDeviceId() ?? 1,
           storyDistributionListId: distributionList.id,
           timestamp,
           type: 'story',
@@ -296,7 +296,7 @@ export async function sendStoryMessage(
           sent_at: groupTimestamp,
           source: window.textsecure.storage.user.getNumber(),
           sourceServiceId: window.textsecure.storage.user.getAci(),
-          sourceDevice: window.textsecure.storage.user.getDeviceId(),
+          sourceDevice: window.textsecure.storage.user.getDeviceId() ?? 1,
           timestamp: groupTimestamp,
           type: 'story',
         });

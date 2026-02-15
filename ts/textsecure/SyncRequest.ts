@@ -53,7 +53,13 @@ class SyncRequestInner extends EventTarget {
     }
     this.#started = true;
 
-    if (window.ConversationController.areWePrimaryDevice()) {
+    const ourDeviceId = window.textsecure.storage.user.getDeviceId();
+    if (ourDeviceId === undefined) {
+      log.warn(
+        'SyncRequest.start: Device ID is undefined, cannot determine if primary device'
+      );
+      // Continue with sync request as we might be a linked device
+    } else if (window.ConversationController.areWePrimaryDevice()) {
       log.warn('SyncRequest.start: We are primary device; returning early');
       return;
     }
